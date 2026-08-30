@@ -30,10 +30,9 @@ class Model:
     def fit(self, features, labels):
         for epoch in range(self.num_iterations):
             prediction = self.predict(features)
-            loss = labels - prediction
+            loss = prediction - labels
             
             for layer in reversed(self.pipeline):
-                layer.take_gradient(loss)
                 loss = layer.backward(loss)
             for layer in self.pipeline:
                 layer.update(self.learning_rate)
@@ -48,7 +47,7 @@ class Model:
         
         input = features
         for layer in self.pipeline:
-            res = layer.predict(input)
+            res = layer.forward(input)
             input = res
         return res
 

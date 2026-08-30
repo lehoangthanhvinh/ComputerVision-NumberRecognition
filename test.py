@@ -1,13 +1,21 @@
 import numpy as np
 
-array = np.array([[3, 2, 3], [4, 7, 7], [7, 8, 9]])
-array = np.array([i == i.max() for i in array])
+class Sigmoid():
+    def __init__(self, A=1, k=1, c=0):
+        super().__init__()
+        self.A = A
+        self.k = k
+        self.c = c
 
-print(array)
-print('-------------------------')
-for arr in array:
-    if arr.sum() > 1:
-        f = next(i for i, a in enumerate(arr) if a)
-        for i in range(len(arr)):
-            arr[i] = False if i > f else arr[i]
-print(array)
+    def forward(self, features):
+        self.predictions = self.A / (1 + np.exp(-self.k * (features - self.c)))
+        return self.predictions
+
+    def backward(self, loss):
+        return loss * self.forward(loss) * (1 - self.forward(loss))
+
+sig = Sigmoid()
+forth = sig.forward(np.array([[1]]))
+print(forth)
+back = sig.backward(forth - 1)
+print(back)

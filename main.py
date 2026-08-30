@@ -11,9 +11,10 @@ test_set = MNIST[2]
 
 clasified_train_set = dts.classify_dataset(train_set)
 
+
 model = Model()
 model.config(pipeline=[Perceptron(784, num_perceptrons=10, scale=0.1), Sigmoid()])
-model.config(learning_rate=0.01, num_iterations=100, report_frequency=10)
+model.config(learning_rate=0.1, num_iterations=1000, report_frequency=100)
 X = train_set[0]
 y = model.fit_catergorize_label(train_set[1])
 model.fit(X, y)
