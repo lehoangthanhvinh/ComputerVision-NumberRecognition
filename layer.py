@@ -23,6 +23,8 @@ class Perceptron(Layer):
         self.gradients = None
         self.weights = np.random.randn(num_weights, num_perceptrons) * scale
         self.bias = np.random.randn(1, num_perceptrons)
+        
+        #Set all weights and bias to 1 (for debug)
         #self.weights = np.ones((num_weights, num_perceptrons))
         #self.bias = np.zeros((1, num_perceptrons))
 
@@ -48,10 +50,12 @@ class Perceptron(Layer):
         self.weights -= learning_rate * self.gradients
         self.bias -= learning_rate * self.bias_gradient
 
+        #Track weights and bias after update (for debug)
         #print('weight')
         #print(self.weights)
         #print('bias')
         #print(self.bias)
+
         self.gradients = None
         self.bias_gradient = None
         
@@ -67,8 +71,8 @@ class Sigmoid(Layer):
         self.predictions = self.A / (1 + np.exp(-self.k * (features - self.c)))
         return self.predictions
 
-    def backward(self, loss):
-        return loss * self.predictions * (1 - self.predictions)
+    def backward(self, gradients):
+        return gradients * self.predictions * (self.A - self.predictions) * self.k / self.A
 
 class Softmax(Layer):
     def __init__(self, T=1):
@@ -84,11 +88,26 @@ class Softmax(Layer):
 
     def backward(self, gradients):
         pred_grad = self.predictions * gradients
-        return pred_grad - self.predictions * pred_grad.sum(axis=1, keepdim=True)
+        return pred_grad - self.predictions * pred_grad.sum(axis=1, keepdims=True)
 
+class Tanh(Layer):
+    def __init__(self, A=1, k=1, c=0):
+        super().__init__()
+        self.A = A
+        self.k = k
+        self.c = c
+
+    def forward(self, features):
+        self.predictions = self.A * np.tanh(self.k * (features - self.c))
+        return self.predictions
+
+    def backward(self, gradients):
+        return gradients  * (self.k * (self.A - np.pow(self.predictions, 2) / self.A))
+    
 class ReLU(Layer):
     def __init__(self):
         super().__init__()
 
     def forward(self, features):
-        return (features > 0) * features
+        self.predictions = (features > 0) * features
+        return self.predictions

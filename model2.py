@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from layer import Perceptron, Sigmoid
 
 class Model:
     def __init__(self, learning_rate=0.01, num_iterations=1000, report_frequency=100, pipeline=[]):
@@ -105,6 +104,8 @@ class Model:
         return correct
 
 '''
+from layer import Perceptron, Sigmoid
+
 model = Model(pipeline=[Perceptron(4, num_perceptrons=2)])
 features = np.array([[1, 2, 3, 3], [1, 4, 5, 5], [2, 5, 4, 2]])
 label = model.predict(features)
