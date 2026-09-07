@@ -1,19 +1,21 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from loss import MSE
 
 class Model:
-    def __init__(self, learning_rate=0.01, num_iterations=1000, report_frequency=100, pipeline=[]):
+    def __init__(self, learning_rate=0.01, num_iterations=1000, report_frequency=100, pipeline=[], loss_func=MSE()):
         self.learning_rate = learning_rate
         self.report_frequency = report_frequency
         self.num_iterations = num_iterations
         self.pipeline = pipeline
+        self.loss_func = loss_func
 
         self.snapshots = []
         self.label_dict = {}
         self.reversed_label_dict = {}
 
-    def config(self, learning_rate=0, num_iterations=0, report_frequency=0, pipeline=[]):
+    def config(self, learning_rate=0, num_iterations=0, report_frequency=0, pipeline=[], loss_func=None):
         if learning_rate:
             self.learning_rate = learning_rate
 
@@ -26,19 +28,23 @@ class Model:
         if pipeline:
             self.pipeline = pipeline
 
+        if loss_func:
+            self.loss_func = loss_func
+
     def fit(self, features, labels):
         for epoch in range(self.num_iterations):
-            prediction = self.predict(features)
-            loss = prediction - labels
+            predictions = self.predict(features)
+            loss = self.loss_func.forward(predictions, labels)
+            gradients = self.loss_func.backward()
             
             for layer in reversed(self.pipeline):
-                loss = layer.backward(loss)
+                gradients = layer.backward(gradients)
             for layer in self.pipeline:
                 layer.update(self.learning_rate)
 
             if epoch % self.report_frequency == 0:
-                correct = self.report(features, labels)
-                print(f'Epoch: {epoch}, Correct: {correct}, ({correct / len(labels) * 100:.2f}%)')
+                correct, loss = self.report(features, labels)
+                print(f'Epoch: {epoch}, Correct: {correct}, ({correct / len(labels) * 100:.2f}%), loss={loss:.4f}')
 
     def predict(self, features):
         if not self.pipeline:
@@ -95,33 +101,16 @@ class Model:
     def report(self, features, labels):
         predictions = self.predict(features)
         decisions = self.decide(predictions)
-
+        loss = self.loss_func.forward(predictions, labels)
         correct = 0
         for i, label in enumerate(labels):
             if all(label == decisions[i]):
                 correct += 1
 
-        return correct
+        return (correct, loss)
 
-'''
-from layer import Perceptron, Sigmoid
+    def save_model(self, filename='weight.npz'):
+        pass
 
-model = Model(pipeline=[Perceptron(4, num_perceptrons=2)])
-features = np.array([[1, 2, 3, 3], [1, 4, 5, 5], [2, 5, 4, 2]])
-label = model.predict(features)
-print(label)
-loss = 43 - label 
-print(loss)
-for layer in reversed(model.pipeline):
-    layer.take_gradient(loss)
-    print(layer.gradients)
-    print(layer.bias_gradient)
-    loss = layer.backward(loss)
-    print(loss)
-for layer in model.pipeline:
-    layer.update(0.01)
-    print(layer.weights, layer.bias)
-
-label = model.predict(features)
-print(label)
-'''
+    def load_model():
+        pass

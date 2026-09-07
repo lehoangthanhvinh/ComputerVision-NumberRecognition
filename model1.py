@@ -94,30 +94,3 @@ class Model:
                 self.weights = data[weights_key]
                 self.bias = data[bias_key]
         except FileNotFoundError: raise ValueError('File not found')
-
-
-'''
-def make_new_model():
-    model = Model(784)
-    model.train(train_set[0], train_set[1])
-    correct, mse = model.report(train_set[0], train_set[1])
-    print(f'Final: Correct: {correct} ({(100 * correct/len(train_set[0])):.2f}%), MSE: {mse:.2f}')
-    model.save_weights()
-
-def load_model_for_train():
-    model = Model(784)
-    model.load_weights('weights.npz')
-    model.train(train_set[0], train_set[1])
-    correct, mse = model.report(train_set[0], train_set[1])
-    print(f'Final: Correct: {correct} ({(100 * correct/len(train_set[0])):.2f}%), MSE: {mse:.2f}')
-    model.save_weights()
-
-
-def check_model_by_labels():
-    model = Model(784)
-    model.load_weights('weights.npz')
-    for key in clasified_train_set.keys():
-        labels = model.predict_batch(clasified_train_set[key])
-        correct = (labels == int(key)).sum() / labels.shape[0]
-        print(f'Label {int(key)}: Correct: {correct*100:.2f}%')
-'''
