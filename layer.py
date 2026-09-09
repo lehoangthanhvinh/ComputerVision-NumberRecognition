@@ -4,25 +4,53 @@ import pandas as pd
 
 class Layer:
     def __init__(self):
-        self.weights = None
-        self.bias = None
+        self.info = {
+            'class': 'Layer'
+        }
 
     def forward(self, features):
         return features
 
-    def update(self, learning_rate):
-        pass
-
     def backward(self, gradients):
         return None
 
-class Perceptron(Layer):
+class WeightedLayer(Layer):
+    def __init__(self):
+        super().__init__()
+        self.info = {
+            'class': 'WeightedLayer'
+        }
+        self.weights = None
+        self.bias = None
+    
+    def update(self, learning_rate):
+        pass
+
+    def save_weights(self):
+        return {
+            'weights': self.weights,
+            'bias': self.bias
+        }
+
+    def load_weights(self, weights_file):
+        try:
+            self.weights = weights_file['weights']
+            self.bias = weights_file['bias']
+        except KeyError:
+            raise KeyError('Weighted Layer requires load files to have both \'weights\' and \'bias\' as it\'s entry')
+
+class Dense(WeightedLayer):
     def __init__(self, num_weights, num_perceptrons=1, scale=1):
         super().__init__()
         self.catch_features = None
         self.gradients = None
         self.weights = np.random.randn(num_weights, num_perceptrons) * scale
         self.bias = np.random.randn(1, num_perceptrons)
+        self.info = {
+            'class': 'Dense',
+            'input': num_weights,
+            'output': num_perceptrons
+        }
         
         #Set all weights and bias to 1 (for debug)
         #self.weights = np.ones((num_weights, num_perceptrons))
@@ -59,13 +87,25 @@ class Perceptron(Layer):
         self.gradients = None
         self.bias_gradient = None
         
+class ActivateLayer(Layer):
+    def __init__(self):
+        super().__init__()
+        self.info = {
+            'class': 'ActivateLayer'
+        }
 
-class Sigmoid(Layer):
+class Sigmoid(ActivateLayer):
     def __init__(self, A=1, k=1, c=0):
         super().__init__()
         self.A = A
         self.k = k
         self.c = c
+        self.info = {
+            'class': 'Sigmoid',
+            'A': A,
+            'k': k,
+            'c': c
+        }
 
     def forward(self, features):
         self.predictions = self.A / (1 + np.exp(-self.k * (features - self.c)))
@@ -74,10 +114,14 @@ class Sigmoid(Layer):
     def backward(self, gradients):
         return gradients * self.predictions * (self.A - self.predictions) * self.k / self.A
 
-class Softmax(Layer):
+class Softmax(ActivateLayer):
     def __init__(self, T=1):
         super().__init__()
         self.T = T
+        self.info = {
+            'class': 'Softmax',
+            'T': T
+        }
 
     def forward(self, features):
         f_max = features.max(axis=1, keepdims=True)
@@ -90,12 +134,18 @@ class Softmax(Layer):
         pred_grad = self.predictions * gradients
         return pred_grad - self.predictions * pred_grad.sum(axis=1, keepdims=True)
 
-class Tanh(Layer):
+class Tanh(ActivateLayer):
     def __init__(self, A=1, k=1, c=0):
         super().__init__()
         self.A = A
         self.k = k
         self.c = c
+        self.info = {
+            'class': 'Tanh',
+            'A': A,
+            'k': k,
+            'c': c
+        }
 
     def forward(self, features):
         self.predictions = self.A * np.tanh(self.k * (features - self.c))
@@ -104,10 +154,24 @@ class Tanh(Layer):
     def backward(self, gradients):
         return gradients  * (self.k * (self.A - np.pow(self.predictions, 2) / self.A))
     
-class ReLU(Layer):
+class ReLU(ActivateLayer):
     def __init__(self):
         super().__init__()
+        self.info = {
+            'class': 'ReLU'
+        }
 
     def forward(self, features):
         self.predictions = (features > 0) * features
         return self.predictions
+
+layer_dict = {
+    'Layer': Layer,
+    'WeightedLayer': WeightedLayer,
+    'Dense': Dense,
+    'ActivateLayer': ActivateLayer,
+    'Sigmoid': Sigmoid,
+    'Softmax': Softmax,
+    'Tanh': Tanh,
+    'ReLU': ReLU,
+}
