@@ -1,4 +1,6 @@
 main.py
 test.py
+weights.npz
 __pycache__/
 *.pyc
+model/

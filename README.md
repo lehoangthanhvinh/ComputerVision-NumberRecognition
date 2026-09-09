@@ -23,7 +23,7 @@ test_set = MNIST[2]
 4. Import model2, layer, create a model and config pipelines
 Ex:
 model = Model()
-model.config(pipeline=[Perceptron(784, num_perceptrons=10, scale=0.1), Softmax()])
+model.config(pipeline=[Dense(784, num_perceptrons=10, scale=0.1), Softmax()])
 model.config(learning_rate=0.1, num_iterations=1000, report_frequency=100)
 
 5. Train model, and see results
@@ -48,7 +48,7 @@ validate_set = MNIST[1]
 test_set = MNIST[2]
 
 model = Model()
-model.config(pipeline=[Perceptron(784, num_perceptrons=10, scale=0.1), Softmax()])
+model.config(pipeline=[Dense(784, num_perceptrons=10, scale=0.1), Softmax()])
 model.config(learning_rate=0.1, num_iterations=1000, report_frequency=100)
 
 X = train_set[0]
