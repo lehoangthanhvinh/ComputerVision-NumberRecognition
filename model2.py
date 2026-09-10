@@ -1,7 +1,13 @@
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from loss import MSE
+import json
+import time
+
+from loss import MSE, loss_dict
+from layer import layer_dict
 
 class Model:
     def __init__(self, learning_rate=0.01, num_iterations=1000, report_frequency=100, pipeline=[], loss_func=MSE()):
@@ -32,6 +38,7 @@ class Model:
             self.loss_func = loss_func
 
     def fit(self, features, labels):
+        start = time.perf_counter()
         for epoch in range(self.num_iterations):
             predictions = self.predict(features)
             loss = self.loss_func.forward(predictions, labels)
@@ -45,6 +52,7 @@ class Model:
             if epoch % self.report_frequency == 0:
                 correct, loss = self.report(features, labels)
                 print(f'Epoch: {epoch}, Correct: {correct}, ({correct / len(labels) * 100:.2f}%), loss={loss:.4f}')
+        print(f'Total training times: {time.perf_counter()-start:.2f} seconds')
 
     def predict(self, features):
         if not self.pipeline:
@@ -109,8 +117,58 @@ class Model:
 
         return (correct, loss)
 
-    def save_model(self, filename='weight.npz'):
-        pass
+    def save_model(self, constructfolder='model'):
+        os.makedirs(constructfolder, exist_ok=True)
+        construct = {}
+        weights = {}
+        pipeline = {}
 
-    def load_model():
-        pass
+        for i, layer in enumerate(self.pipeline):
+            pipeline[f'layer{i}'] = layer.info
+            if isinstance(layer, layer_dict['WeightedLayer']):
+                state = layer.get_states()
+                for key, value in state.items():
+                    weights[f'layer{i}_{key}'] = value
+
+        construct['pipeline'] = pipeline
+        construct['loss_func'] = self.loss_func.info
+        construct['layer_num'] = len(self.pipeline)
+        construct['label_dict'] = {item: int(np.argmax(pos)) for item, pos in self.label_dict.items()}
+        construct['label_num'] = len(self.label_dict)
+
+        with open(constructfolder+'/construct.json', 'w') as c:
+            json.dump(construct, c)
+        np.savez(constructfolder+'/weights.npz', **weights)
+
+
+    def load_model(self, folder):
+        try:
+            with open(folder + '/construct.json', 'r') as f:
+                construct = json.load(f)
+                with np.load(folder + '/weights.npz') as weights:
+                    self.pipeline = []
+                    for i in range(construct['layer_num']):
+                        layer = construct['pipeline'][f'layer{i}']
+                        layer_class = layer.pop('class', None)
+                        new_layer = layer_dict[layer_class]()
+
+                        if isinstance(new_layer, layer_dict['WeightedLayer']):
+                            format = new_layer.load_states(None)
+                            for key in format.keys():
+                                format[key] = weights[f'layer{i}_{key}']
+                            new_layer.load_states(format)
+
+                        elif isinstance(new_layer, layer_dict['ActivateLayer']):
+                            new_layer.load_para(layer)
+
+                        self.pipeline.append(new_layer)
+
+                self.loss_func = loss_dict[construct['loss_func']['class']]()
+                self.label_dict = {item: np.arange(construct['label_num']) == idx for item, idx in construct['label_dict'].items()}
+                self.reversed_label_dict = {tuple(v): k for k, v in self.label_dict.items()}
+
+        except FileNotFoundError:
+            raise FileNotFoundError(f'Folder {folder} need to have \'construct.json\' and \'weights.npz\' in it')
+        
+        except KeyError:
+            raise

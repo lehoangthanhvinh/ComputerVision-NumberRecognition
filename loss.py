@@ -4,7 +4,9 @@ import pandas as pd
 
 class Loss:
     def __init__(self):
-        pass
+        self.info = {
+            'class': 'Loss'
+        }
 
     def forward(self, predictions, labels):
         self.predictions = predictions
@@ -16,6 +18,9 @@ class Loss:
 class MAE(Loss):
     def __init__(self):
         super().__init__()
+        self.info = {
+            'class': 'MAE'
+        }
 
     def forward(self, predictions, labels):
         super().forward(predictions, labels)
@@ -27,6 +32,9 @@ class MAE(Loss):
 class MSE(Loss):
     def __init__(self):
         super().__init__()
+        self.info = {
+            'class': 'MSE'
+        }
 
     def forward(self, predictions, labels):
         super().forward(predictions, labels)
@@ -38,6 +46,9 @@ class MSE(Loss):
 class BCE(Loss):
     def __init__(self):
         super().__init__()
+        self.info = {
+            'class': 'BCE'
+        }
 
     def forward(self, predictions, labels):
         super().forward(predictions, labels)
@@ -50,6 +61,9 @@ class BCE(Loss):
 class CCE(Loss):
     def __init__(self):
         super().__init__()
+        self.info = {
+            'class': 'CCE'
+        }
 
     def forward(self, predictions, labels):
         super().forward(predictions, labels)
@@ -58,3 +72,11 @@ class CCE(Loss):
 
     def backward(self):
         return -(self.labels / self.clipped)
+
+loss_dict = {
+    'Loss': Loss,
+    'MAE': MAE,
+    'MSE': MSE,
+    'BCE': BCE,
+    'CCE': CCE,
+}

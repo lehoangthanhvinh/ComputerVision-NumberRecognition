@@ -8,13 +8,13 @@ MNIST = dts.read_data('data/mnist.pkl.gz')
 
 3. After read_data the structure of the data should look like this
     mnist-------dataset1--------features1(50000, 784)
-        |              |--------labels1(50000, 1)
+        |              |--------labels1(50000, )
         |
         --------dataset2--------features2(10000, 784)
-        |              |--------labels2(10000, 1)
+        |              |--------labels2(10000, )
         |
         --------dataset3--------features3(10000, 784)
-                       |--------labels3(10000, 1)
+                       |--------labels3(10000, )
 Ex: (Split data to train_set, validate_set, test_set)
 train_set = MNIST[0]
 validate_set = MNIST[1]

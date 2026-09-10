@@ -4,3 +4,4 @@ weights.npz
 __pycache__/
 *.pyc
 model/
+save_test/

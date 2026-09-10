@@ -88,9 +88,9 @@ class Model:
         try:
             with np.load(filename) as data:
                 if weights_key not in data.keys():
-                    raise ValueError('Weight key not found')
+                    raise KeyError('Weight key not found')
                 if bias_key not in data.keys():
-                    raise ValueError('Bias key not found')
+                    raise KeyError('Bias key not found')
                 self.weights = data[weights_key]
                 self.bias = data[bias_key]
-        except FileNotFoundError: raise ValueError('File not found')
+        except FileNotFoundError: raise FileNotFoundError('File not found')

@@ -14,33 +14,40 @@ class Layer:
     def backward(self, gradients):
         return None
 
+    def update(self, learning_rate):
+        pass
+
 class WeightedLayer(Layer):
     def __init__(self):
         super().__init__()
         self.info = {
-            'class': 'WeightedLayer'
+            'class': 'WeightedLayer',
+            'input': 0,
+            'output': 0
         }
         self.weights = None
         self.bias = None
-    
-    def update(self, learning_rate):
-        pass
 
-    def save_weights(self):
+    def get_states(self):
         return {
             'weights': self.weights,
             'bias': self.bias
         }
 
-    def load_weights(self, weights_file):
+    def load_states(self, state_dict):
+        if state_dict is None:
+            return {
+                'weights': None,
+                'bias': None
+            }
         try:
-            self.weights = weights_file['weights']
-            self.bias = weights_file['bias']
+            self.weights = state_dict['weights']
+            self.bias = state_dict['bias']
         except KeyError:
             raise KeyError('Weighted Layer requires load files to have both \'weights\' and \'bias\' as it\'s entry')
 
 class Dense(WeightedLayer):
-    def __init__(self, num_weights, num_perceptrons=1, scale=1):
+    def __init__(self, num_weights=1, num_perceptrons=1, scale=1):
         super().__init__()
         self.catch_features = None
         self.gradients = None
@@ -86,6 +93,13 @@ class Dense(WeightedLayer):
 
         self.gradients = None
         self.bias_gradient = None
+
+    def load_states(self, state_dict):
+        if state_dict:
+            super().load_states(state_dict)
+            self.info['input'] = self.weights.shape[0]
+            self.info['output'] = self.weights.shape[1]
+        else: return super().load_states(state_dict)
         
 class ActivateLayer(Layer):
     def __init__(self):
@@ -93,6 +107,9 @@ class ActivateLayer(Layer):
         self.info = {
             'class': 'ActivateLayer'
         }
+
+    def load_para(self, para_dict):
+        pass
 
 class Sigmoid(ActivateLayer):
     def __init__(self, A=1, k=1, c=0):
@@ -114,6 +131,21 @@ class Sigmoid(ActivateLayer):
     def backward(self, gradients):
         return gradients * self.predictions * (self.A - self.predictions) * self.k / self.A
 
+    def load_para(self, para_dict):
+        super().load_para(para_dict)
+        try:
+            self.A = para_dict['A']
+            self.k = para_dict['k']
+            self.c = para_dict['c']
+            self.info = {
+                'class': 'Sigmoid',
+                'A': self.A,
+                'k': self.k,
+                'c': self.c
+            }
+        except KeyError:
+            raise KeyError('Unmatched parameter(s) for Activate Layer')
+
 class Softmax(ActivateLayer):
     def __init__(self, T=1):
         super().__init__()
@@ -134,6 +166,17 @@ class Softmax(ActivateLayer):
         pred_grad = self.predictions * gradients
         return pred_grad - self.predictions * pred_grad.sum(axis=1, keepdims=True)
 
+    def load_para(self, para_dict):
+        super().load_para(para_dict)
+        try:
+            self.A = para_dict['T']
+            self.info = {
+                'class': 'Softmax',
+                'T': self.T,
+            }
+        except KeyError:
+            raise KeyError('Unmatched parameter(s) for Activate Layer')
+
 class Tanh(ActivateLayer):
     def __init__(self, A=1, k=1, c=0):
         super().__init__()
@@ -153,6 +196,21 @@ class Tanh(ActivateLayer):
 
     def backward(self, gradients):
         return gradients  * (self.k * (self.A - np.pow(self.predictions, 2) / self.A))
+
+    def load_para(self, para_dict):
+        super().load_para(para_dict)
+        try:
+            self.A = para_dict['A']
+            self.k = para_dict['k']
+            self.c = para_dict['c']
+            self.info = {
+                'class': 'Tanh',
+                'A': self.A,
+                'k': self.k,
+                'c': self.c
+            }
+        except KeyError:
+            raise KeyError('Unmatched parameter(s) for Activate Layer')
     
 class ReLU(ActivateLayer):
     def __init__(self):
