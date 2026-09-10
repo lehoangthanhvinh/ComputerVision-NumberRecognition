@@ -141,7 +141,7 @@ class Model:
         np.savez(constructfolder+'/weights.npz', **weights)
 
 
-    def load_model(self, folder):
+    def load_model(self, folder='model'):
         try:
             with open(folder + '/construct.json', 'r') as f:
                 construct = json.load(f)
