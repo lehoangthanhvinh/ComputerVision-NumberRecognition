@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 model/
 save_test/
+twolayermodel/

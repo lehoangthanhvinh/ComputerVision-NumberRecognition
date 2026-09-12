@@ -223,6 +223,9 @@ class ReLU(ActivateLayer):
         self.predictions = (features > 0) * features
         return self.predictions
 
+    def backward(self, gradients):
+        return gradients * (self.predictions > 0)
+
 layer_dict = {
     'Layer': Layer,
     'WeightedLayer': WeightedLayer,
